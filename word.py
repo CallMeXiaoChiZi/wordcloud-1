@@ -3,13 +3,46 @@ from os import path
 from scipy.misc import imread
 import matplotlib.pyplot as plt
 import jieba
-
+import codecs
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+import sys,getopt
+opts,args=getopt.getopt(sys.argv[1:],"ht:i:f:o:",["input_text_file","input_image_file","font_file","out_file"])
+input_text_file=""
+input_image_file=""
+out_file=""
+font_file=""
+USAGE='''
+	This script generate word cloud given an text file and an image file
+	usage: python word.py -t <input_text_file> -i <input_image_file> -o <out_file>
+		required argument:
+			-t | --input_text_file : input file in text
+			-i | --input_image_file: input image file
+			-f | --font_file: font file
+			-o | --out_file : output file prefix
+'''
+for opt,value in opts:
+	if opt =="h":
+		print USAGE
+		sys.exit(2)
+	elif opt in ("-t","--input_text_file"):
+		input_text_file=value
+	elif opt in ("-i","--input_image_file"):
+		input_image_file=value
+	elif opt in ("-f","--font_file"):
+		font_file=value
+	elif opt in ("-o","--out_file"):
+		out_file =value
+ 
+	
+#print coverage
+if (input_text_file=="" or input_image_file=="" or out_file ==""):
+	print USAGE
+	sys.exit(2)
 
 stopwords = {}
 def importStopword(filename=''):
     global stopwords
-    f = open(filename, 'r', encoding='utf-8')
+    f = codecs.open(filename, 'r', encoding='utf-8')
     line = f.readline().rstrip()
 
     while line:
@@ -39,7 +72,7 @@ importStopword(filename='./stopwords.txt')
 # d = path.dirname('.')
 d = path.dirname(__file__)
 
-text = open(path.join(d, 'love.txt'),encoding ='utf-8').read()
+text = codecs.open(path.join(d, input_text_file),encoding ='utf-8').read()
 
 #如果是中文
 text = processChinese(text)#中文不好分词，使用Jieba分词进行
@@ -47,9 +80,12 @@ text = processChinese(text)#中文不好分词，使用Jieba分词进行
 # read the mask / color image
 # taken from http://jirkavinse.deviantart.com/art/quot-Real-Life-quot-Alice-282261010
 # 设置背景图片
-back_coloring = imread(path.join(d, "./image/love.jpg"))
-
-wc = WordCloud( font_path='./font/叶立群几何体.ttf',#设置字体
+back_coloring = imread(path.join(d, input_image_file))
+if font_file=="":
+	path_font_tff='./font/叶立群几何体.ttf'
+else:
+	path_font_tff=font_file
+wc = WordCloud( font_path=path_font_tff,#设置字体
                 background_color="black", #背景颜色
                 max_words=2000,# 词云显示的最大词数
                 mask=back_coloring,#设置背景图片
@@ -67,7 +103,7 @@ plt.figure()
 # 以下代码显示图片
 plt.imshow(wc)
 plt.axis("off")
-plt.show()
+#plt.show()
 # 绘制词云
 '''plt.figure()
 
@@ -85,4 +121,4 @@ plt.axis("off")
 plt.show()
 '''
 # 保存图片
-wc.to_file(path.join(d, "名称.png"))
+wc.to_file(path.join(d, out_file+".png"))
